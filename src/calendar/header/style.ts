@@ -1,15 +1,14 @@
 import {StyleSheet, Platform} from 'react-native';
 import * as defaultStyle from '../../style';
-import {Theme} from '../../types';
 
-export default function (theme: Theme = {}) {
+const STYLESHEET_ID = 'stylesheet.calendar.header';
+
+export default function (theme = {}) {
   const appStyle = {...defaultStyle, ...theme};
   return StyleSheet.create({
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: 10,
-      paddingRight: 10,
       marginTop: 6,
       alignItems: 'center'
     },
@@ -23,9 +22,17 @@ export default function (theme: Theme = {}) {
       color: appStyle.monthTextColor,
       margin: 10
     },
+    arrowText:{
+      fontSize: 22,
+      color: appStyle.arrowColor,
+      height: 30,
+      width: 35,
+      
+    },
     arrow: {
-      padding: 10,
-      ...appStyle.arrowStyle
+      justifyContent: "center",
+      backgroundColor: "green",
+      alignItems: "center"
     },
     arrowImage: {
       tintColor: appStyle.arrowColor,
@@ -39,7 +46,6 @@ export default function (theme: Theme = {}) {
     disabledArrowImage: {
       tintColor: appStyle.disabledArrowColor
     },
-    // @ts-expect-error
     week: {
       marginTop: 7,
       flexDirection: 'row',
@@ -58,6 +64,6 @@ export default function (theme: Theme = {}) {
     disabledDayHeader: {
       color: appStyle.textSectionTitleDisabledColor
     },
-    ...(theme['stylesheet.calendar.header'] || {})
+    ...(theme[STYLESHEET_ID] || {})
   });
 }
