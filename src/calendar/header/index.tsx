@@ -1,73 +1,24 @@
-import includes from 'lodash/includes';
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import memoize from 'memoize-one';
 import XDate from 'xdate';
 
-import React, {Component, Fragment, ReactNode} from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleProp,
-  ViewStyle,
-  AccessibilityActionEvent,
-  ColorValue
-} from 'react-native';
-import {shouldUpdate} from '../../componentUpdater';
-import {formatNumbers, weekDayNames} from '../../dateutils';
+import React, {Component, Fragment} from 'react';
+import {ActivityIndicator, Platform, View, Text, TouchableOpacity, Image} from 'react-native';
+
+import {shouldUpdate} from '../../component-updater';
+import {weekDayNames} from '../../dateutils';
 import {
   CHANGE_MONTH_LEFT_ARROW,
   CHANGE_MONTH_RIGHT_ARROW,
   HEADER_DAY_NAMES,
   HEADER_LOADING_INDICATOR,
   HEADER_MONTH_NAME
-  // @ts-expect-error
 } from '../../testIDs';
 import styleConstructor from './style';
-import {Theme, Direction} from '../../types';
 
-export interface CalendarHeaderProps {
-  theme?: Theme;
-  firstDay?: number;
-  displayLoadingIndicator?: boolean;
-  showWeekNumbers?: boolean;
-  month?: XDate;
-  addMonth?: (num: number) => void;
-  /** Month format in the title. Formatting values: http://arshaw.com/xdate/#Formatting */
-  monthFormat?: string;
-  /**  Hide day names */
-  hideDayNames?: boolean;
-  /** Hide month navigation arrows */
-  hideArrows?: boolean;
-  /** Replace default arrows with custom ones (direction can be 'left' or 'right') */
-  renderArrow?: (direction: Direction) => ReactNode;
-  /** Handler which gets executed when press arrow icon left. It receive a callback can go back month */
-  onPressArrowLeft?: (method: () => void, month?: XDate) => void;
-  /** Handler which gets executed when press arrow icon right. It receive a callback can go next month */
-  onPressArrowRight?: (method: () => void, month?: XDate) => void;
-  /** Disable left arrow */
-  disableArrowLeft?: boolean;
-  /** Disable right arrow */
-  disableArrowRight?: boolean;
-  /** Apply custom disable color to selected day indexes */
-  disabledDaysIndexes?: number[];
-  /** Replace default title with custom one. the function receive a date as parameter */
-  renderHeader?: (date?: XDate) => ReactNode;
-  /** Replace default title with custom element */
-  customHeaderTitle?: JSX.Element;
-  /** Provide aria-level for calendar heading for proper accessibility when used with web (react-native-web) */
-  webAriaLevel?: number;
-  testID?: string;
-  style?: StyleProp<ViewStyle>;
-  accessibilityElementsHidden?: boolean;
-  importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants';
-}
-
-class CalendarHeader extends Component<CalendarHeaderProps> {
-  static displayName = 'CalendarHeader';
+class CalendarHeader extends Component {
+  static displayName = 'IGNORE';
 
   static propTypes = {
     theme: PropTypes.object,
@@ -94,10 +45,8 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
     disableArrowRight: PropTypes.bool,
     /** Apply custom disable color to selected day indexes */
     disabledDaysIndexes: PropTypes.arrayOf(PropTypes.number),
-    /** Replace default title with custom one. the function receive a date as parameter */
+    /** Replace default month and year title with custom one. the function receive a date as parameter. */
     renderHeader: PropTypes.any,
-    /** Replace default title with custom element */
-    customHeaderTitle: PropTypes.any,
     /** Provide aria-level for calendar heading for proper accessibility when used with web (react-native-web) */
     webAriaLevel: PropTypes.number
   };
@@ -106,16 +55,15 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
     monthFormat: 'MMMM yyyy',
     webAriaLevel: 1
   };
-  style: any;
 
-  constructor(props: CalendarHeaderProps) {
+  constructor(props) {
     super(props);
 
     this.style = styleConstructor(props.theme);
   }
 
-  shouldComponentUpdate(nextProps: CalendarHeaderProps) {
-    if (nextProps.month?.toString('yyyy MM') !== this.props.month?.toString('yyyy MM')) {
+  shouldComponentUpdate(nextProps) {
+    if (nextProps.month.toString('yyyy MM') !== this.props.month.toString('yyyy MM')) {
       return true;
     }
     return shouldUpdate(this.props, nextProps, [
@@ -126,20 +74,18 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
       'monthFormat',
       'renderArrow',
       'disableArrowLeft',
-      'disableArrowRight',
-      'renderHeader',
-      'customHeaderTitle'
+      'disableArrowRight'
     ]);
   }
 
   addMonth = () => {
     const {addMonth} = this.props;
-    addMonth?.(1);
+    addMonth(1);
   };
 
   subtractMonth = () => {
     const {addMonth} = this.props;
-    addMonth?.(-1);
+    addMonth(-1);
   };
 
   onPressLeft = () => {
@@ -165,10 +111,10 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
   renderWeekDays = memoize(weekDaysNames => {
     const {disabledDaysIndexes} = this.props;
 
-    return weekDaysNames.map((day: string, idx: number) => {
+    return weekDaysNames.map((day, idx) => {
       const dayStyle = [this.style.dayHeader];
 
-      if (includes(disabledDaysIndexes, idx)) {
+      if (_.includes(disabledDaysIndexes, idx)) {
         dayStyle.push(this.style.disabledDayHeader);
       }
 
@@ -185,15 +131,11 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
   });
 
   renderHeader = () => {
-    const {customHeaderTitle, renderHeader, month, monthFormat, testID, webAriaLevel} = this.props;
+    const {renderHeader, month, monthFormat, testID, webAriaLevel} = this.props;
     const webProps = Platform.OS === 'web' ? {'aria-level': webAriaLevel} : {};
 
     if (renderHeader) {
       return renderHeader(month);
-    }
-
-    if (customHeaderTitle) {
-      return customHeaderTitle;
     }
 
     return (
@@ -204,13 +146,13 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
           testID={testID ? `${HEADER_MONTH_NAME}-${testID}` : HEADER_MONTH_NAME}
           {...webProps}
         >
-          {formatNumbers(month?.toString(monthFormat))}
+          {month.toString(monthFormat)}
         </Text>
       </Fragment>
     );
   };
 
-  renderArrow(direction: Direction) {
+  renderArrow(direction) {
     const {hideArrows, disableArrowLeft, disableArrowRight, renderArrow, testID} = this.props;
     if (hideArrows) {
       return <View />;
@@ -222,21 +164,35 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
     const imageSource = isLeft ? require('../img/previous.png') : require('../img/next.png');
     const renderArrowDirection = isLeft ? 'left' : 'right';
     const shouldDisable = isLeft ? disableArrowLeft : disableArrowRight;
+    const {addMonth} = this.props;
 
     return (
-      <TouchableOpacity
-        onPress={!shouldDisable ? onPress : undefined}
-        disabled={shouldDisable}
-        style={this.style.arrow}
-        hitSlop={{left: 20, right: 20, top: 20, bottom: 20}}
-        testID={testId}
-      >
-        {renderArrow ? (
-          renderArrow(renderArrowDirection)
-        ) : (
-          <Image source={imageSource} style={shouldDisable ? this.style.disabledArrowImage : this.style.arrowImage} />
-        )}
-      </TouchableOpacity>
+      <View style={{flexDirection: "row", paddingBottom: 6}}>
+        <TouchableOpacity
+          onPress={!shouldDisable ? () => addMonth(isLeft ? -12 : 1) : undefined}
+          disabled={shouldDisable}
+          style={this.style.arrow}
+          testID={testId}
+        >
+          {renderArrow ? (
+            renderArrow(renderArrowDirection)
+          ) : (
+            <Text style={{...this.style.arrowText, textAlign: isLeft ? "left" : "right"}}>{isLeft ? "«" : "›"}</Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={!shouldDisable ? () => addMonth(isLeft ? -1 : 12) : undefined}
+          disabled={shouldDisable}
+          style={this.style.arrow}
+          testID={testId}
+        >
+          {renderArrow ? (
+            renderArrow(renderArrowDirection)
+          ) : (
+            <Text style={{...this.style.arrowText, textAlign: isLeft ? "left" : "right"}}>{isLeft ? "‹" : "»"}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -246,7 +202,7 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
     if (displayLoadingIndicator) {
       return (
         <ActivityIndicator
-          color={theme?.indicatorColor as ColorValue}
+          color={theme && theme.indicatorColor}
           testID={testID ? `${HEADER_LOADING_INDICATOR}-${testID}` : HEADER_LOADING_INDICATOR}
         />
       );
@@ -297,7 +253,7 @@ class CalendarHeader extends Component<CalendarHeaderProps> {
     );
   }
 
-  onAccessibilityAction = (event: AccessibilityActionEvent) => {
+  onAccessibilityAction = event => {
     switch (event.nativeEvent.actionName) {
       case 'decrement':
         this.onPressLeft();
