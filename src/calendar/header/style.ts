@@ -10,6 +10,7 @@ export default function (theme = {}) {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 6,
+      paddingHorizontal: 12,
       alignItems: 'center'
     },
     headerContainer: {
@@ -26,7 +27,7 @@ export default function (theme = {}) {
       fontSize: 22,
       color: appStyle.arrowColor,
       height: 30,
-      width: 35,
+      width: 30,
       
     },
     arrow: {
