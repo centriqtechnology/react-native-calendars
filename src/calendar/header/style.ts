@@ -31,7 +31,6 @@ export default function (theme = {}) {
     },
     arrow: {
       justifyContent: "center",
-      backgroundColor: "green",
       alignItems: "center"
     },
     arrowImage: {
